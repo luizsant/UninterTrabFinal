@@ -283,9 +283,19 @@ function mostrarConteudo(pagina) {
             <label for="dataNascimento">Data de Nascimento:</label>
             <input type="date" id="dataNascimento" required>
       
+            <label for="internado">Internado?</label>
+            <select id="internado">
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+      
+            <label for="dataInternacao">Data da Internação:</label>
+            <input type="date" id="dataInternacao">
+      
             <button type="submit">Salvar Paciente</button>
           </form>
-          <p id="mensagemCadastro"></p>`;
+          <p id="mensagemCadastro"></p>
+        `;
 
       document
         .getElementById("formCadastro")
@@ -295,22 +305,24 @@ function mostrarConteudo(pagina) {
           const nome = document.getElementById("nome").value.trim();
           const cpf = document.getElementById("cpf").value.trim();
           const data = document.getElementById("dataNascimento").value;
+          const internado = document.getElementById("internado").value;
+          const dataInternacao =
+            document.getElementById("dataInternacao").value;
           const mensagem = document.getElementById("mensagemCadastro");
 
-          if (nome === "" || cpf === "" || data === "") {
-            mensagem.textContent = "Preencha todos os campos.";
+          if (!nome || !cpf || !data) {
+            mensagem.textContent = "Preencha todos os campos obrigatórios.";
             mensagem.style.color = "red";
-          } else {
-            mensagem.textContent = "Paciente cadastrado com sucesso!";
-            mensagem.style.color = "green";
-
-            const pacientes =
-              JSON.parse(localStorage.getItem("pacientes")) || [];
-            pacientes.push({ nome, cpf, data });
-            localStorage.setItem("pacientes", JSON.stringify(pacientes));
-
-            document.getElementById("formCadastro").reset();
+            return;
           }
+
+          const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+          pacientes.push({ nome, cpf, data, internado, dataInternacao });
+          localStorage.setItem("pacientes", JSON.stringify(pacientes));
+
+          mensagem.textContent = "Paciente cadastrado com sucesso!";
+          mensagem.style.color = "green";
+          document.getElementById("formCadastro").reset();
         });
       break;
 
@@ -398,7 +410,7 @@ function mostrarConteudo(pagina) {
               <td>${c.paciente}</td>
               <td><input type="date" value="${c.data}" onchange="editarConsulta(${i}, 'data', this.value)"></td>
               <td><input type="time" value="${c.hora}" onchange="editarConsulta(${i}, 'hora', this.value)"></td>
-              <td><button onclick="excluirConsulta(${i})">Excluir</button></td>
+              <td><button onclick="excluirConsulta(${i})">❌ Cancelar Consulta</button></td>
             </tr>`;
       });
 
@@ -419,38 +431,61 @@ function mostrarConteudo(pagina) {
       }
 
       let htmlPacientes = `
-  <h1>Pacientes Cadastrados</h1>
-  <input type="text" id="buscaPaciente" placeholder="🔎 Buscar por nome..." style="padding:10px; width:100%; max-width:400px; margin-bottom:20px; border-radius:6px; border:1px solid #ccc;">
-  <table class="tabela-consultas">
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>CPF</th>
-        <th>Nascimento</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody id="listaPacientes">
-`;
+          <h1>Pacientes Cadastrados</h1>
+          <table class="tabela-consultas">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Nascimento</th>
+                <th>Internado?</th>
+                <th>Data Internação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaPacientes">
+        `;
 
       pacientes.forEach((p, i) => {
         htmlPacientes += `
-      <tr>
-        <td><input type="text" value="${p.nome}" onchange="editarPaciente(${i}, 'nome', this.value)"></td>
-        <td><input type="text" value="${p.cpf}" onchange="editarPaciente(${i}, 'cpf', this.value)"></td>
-        <td><input type="date" value="${p.data}" onchange="editarPaciente(${i}, 'data', this.value)"></td>
-        <td><button onclick="excluirPaciente(${i})">Excluir</button></td>
-      </tr>`;
+            <tr>
+              <td><input type="text" value="${
+                p.nome
+              }" onchange="editarPaciente(${i}, 'nome', this.value)"></td>
+              <td><input type="text" value="${
+                p.cpf
+              }" onchange="editarPaciente(${i}, 'cpf', this.value)"></td>
+              <td><input type="date" value="${
+                p.data
+              }" onchange="editarPaciente(${i}, 'data', this.value)"></td>
+              <td>
+                <select onchange="editarPaciente(${i}, 'internado', this.value)">
+                  <option value="Sim" ${
+                    p.internado === "Sim" ? "selected" : ""
+                  }>Sim</option>
+                  <option value="Não" ${
+                    p.internado !== "Sim" ? "selected" : ""
+                  }>Não</option>
+                </select>
+              </td>
+              <td>
+                <input type="date" value="${
+                  p.dataInternacao || ""
+                }" onchange="editarPaciente(${i}, 'dataInternacao', this.value)">
+              </td>
+              <td><button onclick="excluirPaciente(${i})">Excluir</button></td>
+            </tr>`;
       });
 
       htmlPacientes += `
-      </tbody>
-    </table>
-    <br><button onclick="exportarPacientesPDF()">📄 Exportar PDF</button>
-  `;
+            </tbody>
+          </table>
+          <br><button onclick="exportarPacientesPDF()">📄 Exportar PDF</button>
+        `;
 
       conteudo.innerHTML = htmlPacientes;
       break;
+
     case "unidades":
       const unidades = JSON.parse(localStorage.getItem("unidades")) || [];
 
@@ -890,4 +925,14 @@ function atualizarSuprimento(index, tipo) {
   }
   localStorage.setItem("suprimentos", JSON.stringify(suprimentos));
   mostrarConteudo("administracao");
+}
+function registrarLog(acao, detalhe = "") {
+  const logs = JSON.parse(localStorage.getItem("logs")) || [];
+
+  const usuario = localStorage.getItem("usuario") || "admin";
+  const data = new Date().toLocaleString("pt-BR");
+
+  logs.push({ usuario, acao, detalhe, data });
+
+  localStorage.setItem("logs", JSON.stringify(logs));
 }
