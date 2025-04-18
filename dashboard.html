@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SGHSS - Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+
+  <!-- Botão Hamburguer (Menu Mobile) -->
+  <button id="menuToggle" class="menu-toggle">☰ Menu</button>
+
+  <!-- Container Geral -->
+  <div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <h2>SGHSS</h2>
+      <ul>
+        <li><button onclick="mostrarConteudo('home')">🏠 Início</button></li>
+        <li><button onclick="mostrarConteudo('cadastro')">🧍 Cadastro de Paciente</button></li>
+        <li><button onclick="mostrarConteudo('pacientes')">👥 Pacientes</button></li>
+        <li><button onclick="mostrarConteudo('prontuario')">📄 Prontuário</button></li>
+        <li><button onclick="mostrarConteudo('agendamento')">📅 Agendamento</button></li>
+        <li><button onclick="mostrarConteudo('consultas')">📆 Consultas</button></li>
+        <li><button onclick="mostrarConteudo('teleconsulta')">💬 Teleconsulta</button></li>
+        <li><button onclick="exportarPacientesPDF()">📄 Exportar Pacientes (PDF)</button></li>
+        <li><button onclick="logout()">🚪 Sair</button></li>
+        <li><button onclick="resetarSistema()">🗑️ Resetar Sistema</button></li>
+      </ul>
+    </aside>
+
+    <!-- Área de Conteúdo -->
+    <main class="conteudo" id="conteudo">
+      <h1>Bem-vindo ao SGHSS</h1>
+      <p>Selecione uma opção no menu para começar.</p>
+    </main>
+
+  </div>
+
+  <!-- Toast de feedback -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/dashboard.js"></script>
+
+</body>
+
+</html>

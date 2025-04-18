@@ -1,0 +1,146 @@
+/* Fundo com gradiente */
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(to right, #0077cc, #00bfff);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Container central */
+.login-wrapper {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+/* Cartão */
+.login-box {
+  background-color: #fff;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+/* Título e subtítulo */
+.login-box h1 {
+  margin-bottom: 5px;
+  color: #0077cc;
+}
+
+.subtitulo {
+  margin-bottom: 30px;
+  color: #666;
+}
+
+/* Formulário */
+.login-box form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Grupo de inputs */
+.input-group {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* Inputs */
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #0077cc;
+}
+
+/* Botão */
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-box button:hover {
+  background-color: #005fa3;
+}
+
+/* Erros */
+#mensagemErro {
+  margin-top: 10px;
+  color: red;
+  font-size: 14px;
+}
+.conteudo button,
+.formulario button {
+  background-color: #0077cc;
+  border: none;
+  padding: 10px 15px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  transition: background-color 0.3s;
+}
+
+.conteudo button:hover,
+.formulario button:hover {
+  background-color: #005fa3;
+}
+textarea,
+select {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #0077cc;
+  background-color: #f0f8ff;
+}
+@media (max-width: 600px) {
+  .formulario,
+  .tabela-consultas {
+    font-size: 14px;
+  }
+
+  .sidebar button {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .conteudo {
+    padding: 20px;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 14px;
+  }
+}
