@@ -40,6 +40,235 @@ function mostrarConteudo(pagina) {
     </div>
   `;
       break;
+    case "administracao":
+      const lancamentos = JSON.parse(localStorage.getItem("financeiro")) || [];
+      const suprimentos = JSON.parse(localStorage.getItem("suprimentos")) || [];
+
+      let saldo = lancamentos.reduce((acc, l) => {
+        return acc + (l.tipo === "Receita" ? l.valor : -l.valor);
+      }, 0);
+
+      let htmlAdmin = `
+    <h1>💼 Administração Hospitalar</h1>
+
+    <h2>📊 Relatórios Financeiros</h2>
+    <form id="formFinanceiro" class="formulario">
+      <label for="tipoFinanceiro">Tipo:</label>
+      <select id="tipoFinanceiro" required>
+        <option value="Receita">Receita</option>
+        <option value="Despesa">Despesa</option>
+      </select>
+
+      <label for="descFinanceiro">Descrição:</label>
+      <input type="text" id="descFinanceiro" required>
+
+      <label for="valorFinanceiro">Valor (R$):</label>
+      <input type="number" id="valorFinanceiro" step="0.01" required>
+
+      <label for="dataFinanceiro">Data:</label>
+      <input type="date" id="dataFinanceiro" required>
+
+      <button type="submit">Lançar</button>
+    </form>
+
+    <table class="tabela-consultas" style="margin-top:20px;">
+      <thead><tr><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Data</th></tr></thead>
+      <tbody>
+  `;
+
+      lancamentos.forEach((l) => {
+        htmlAdmin += `
+      <tr>
+        <td>${l.tipo}</td>
+        <td>${l.descricao}</td>
+        <td>R$ ${l.valor.toFixed(2)}</td>
+        <td>${l.data}</td>
+      </tr>`;
+      });
+
+      htmlAdmin += `</tbody></table>
+    <p><strong>Saldo:</strong> R$ ${saldo.toFixed(2)}</p>
+    <hr>
+
+    <h2>🧰 Suprimentos Hospitalares</h2>
+    <form id="formSuprimento" class="formulario">
+      <label for="nomeSuprimento">Nome do Item:</label>
+      <input type="text" id="nomeSuprimento" required>
+
+      <label for="qtdSuprimento">Quantidade Inicial:</label>
+      <input type="number" id="qtdSuprimento" required>
+
+      <button type="submit">Adicionar Item</button>
+    </form>
+
+    <table class="tabela-consultas" style="margin-top:20px;">
+      <thead><tr><th>Item</th><th>Quantidade</th><th>Ações</th></tr></thead>
+      <tbody>
+  `;
+
+      suprimentos.forEach((s, i) => {
+        htmlAdmin += `
+      <tr>
+        <td>${s.nome}</td>
+        <td>${s.qtd}</td>
+        <td>
+          <button onclick="atualizarSuprimento(${i}, 'entrada')">+</button>
+          <button onclick="atualizarSuprimento(${i}, 'saida')">-</button>
+        </td>
+      </tr>`;
+      });
+
+      htmlAdmin += `</tbody></table>`;
+
+      conteudo.innerHTML = htmlAdmin;
+
+      // Listener para financeiro
+      document
+        .getElementById("formFinanceiro")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const tipo = document.getElementById("tipoFinanceiro").value;
+          const descricao = document
+            .getElementById("descFinanceiro")
+            .value.trim();
+          const valor = parseFloat(
+            document.getElementById("valorFinanceiro").value
+          );
+          const data = document.getElementById("dataFinanceiro").value;
+
+          if (descricao && valor && data) {
+            lancamentos.push({ tipo, descricao, valor, data });
+            localStorage.setItem("financeiro", JSON.stringify(lancamentos));
+            mostrarToast("Lançamento registrado!", "sucesso");
+            mostrarConteudo("administracao");
+          } else {
+            mostrarToast("Preencha todos os campos.", "erro");
+          }
+        });
+
+      // Listener para suprimento
+      document
+        .getElementById("formSuprimento")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const nome = document.getElementById("nomeSuprimento").value.trim();
+          const qtd = parseInt(document.getElementById("qtdSuprimento").value);
+
+          if (nome && qtd >= 0) {
+            suprimentos.push({ nome, qtd });
+            localStorage.setItem("suprimentos", JSON.stringify(suprimentos));
+            mostrarToast("Item adicionado!", "sucesso");
+            mostrarConteudo("administracao");
+          } else {
+            mostrarToast("Preencha os dados corretamente.", "erro");
+          }
+        });
+      break;
+
+    case "leitos":
+      const unidadesLeitos = JSON.parse(localStorage.getItem("unidades")) || [];
+
+      if (unidadesLeitos.length === 0) {
+        conteudo.innerHTML = `<h1>Leitos por Unidade</h1><p>Não há nenhuma unidade cadastrada ainda.</p>`;
+        break;
+      }
+
+      let selectUnidades = `
+          <h1>Leitos por Unidade</h1>
+          <label for="selecionarUnidade">Escolha a Unidade:</label>
+          <select id="selecionarUnidade" style="margin-bottom:20px; padding:10px; border-radius:6px;">
+            <option value="">-- Selecione --</option>
+        `;
+
+      unidadesLeitos.forEach((u, i) => {
+        selectUnidades += `<option value="${i}">${u.nome}</option>`;
+      });
+
+      selectUnidades += `</select>
+          <div id="leitosPorUnidade"></div>`;
+
+      conteudo.innerHTML = selectUnidades;
+
+      document
+        .getElementById("selecionarUnidade")
+        .addEventListener("change", function () {
+          const index = this.value;
+          if (index !== "") {
+            gerenciarLeitosUnidade(parseInt(index));
+          }
+        });
+      break;
+
+    case "profissionais":
+      const profissionais =
+        JSON.parse(localStorage.getItem("profissionais")) || [];
+
+      let htmlProfissionais = `
+          <h1>Cadastro de Profissionais de Saúde</h1>
+          <form id="formProfissional" class="formulario">
+            <label for="nomeProf">Nome:</label>
+            <input type="text" id="nomeProf" required>
+      
+            <label for="funcaoProf">Função:</label>
+            <select id="funcaoProf" required>
+              <option value="">Selecione</option>
+              <option>Médico</option>
+              <option>Enfermeiro</option>
+              <option>Técnico</option>
+            </select>
+      
+            <label for="espProf">Especialidade:</label>
+            <input type="text" id="espProf" required>
+      
+            <button type="submit">Salvar Profissional</button>
+          </form>
+          <hr>
+          <h2>Lista de Profissionais</h2>
+          <table class="tabela-consultas">
+            <thead>
+              <tr>
+                <th>Nome</th><th>Função</th><th>Especialidade</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaProfissionais">`;
+
+      profissionais.forEach((p, i) => {
+        htmlProfissionais += `
+            <tr>
+              <td><input type="text" value="${p.nome}" onchange="editarProfissional(${i}, 'nome', this.value)"></td>
+              <td><input type="text" value="${p.funcao}" onchange="editarProfissional(${i}, 'funcao', this.value)"></td>
+              <td><input type="text" value="${p.especialidade}" onchange="editarProfissional(${i}, 'especialidade', this.value)"></td>
+              <td><button onclick="excluirProfissional(${i})">Excluir</button></td>
+            </tr>`;
+      });
+
+      htmlProfissionais += `</tbody></table>`;
+      conteudo.innerHTML = htmlProfissionais;
+
+      document
+        .getElementById("formProfissional")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const nome = document.getElementById("nomeProf").value.trim();
+          const funcao = document.getElementById("funcaoProf").value;
+          const especialidade = document.getElementById("espProf").value.trim();
+
+          if (nome && funcao && especialidade) {
+            const profissionais =
+              JSON.parse(localStorage.getItem("profissionais")) || [];
+            profissionais.push({ nome, funcao, especialidade });
+            localStorage.setItem(
+              "profissionais",
+              JSON.stringify(profissionais)
+            );
+            mostrarToast("Profissional cadastrado com sucesso!", "sucesso");
+            mostrarConteudo("profissionais");
+          } else {
+            mostrarToast("Preencha todos os campos!", "erro");
+          }
+        });
+      break;
 
     case "cadastro":
       conteudo.innerHTML = `
@@ -222,6 +451,72 @@ function mostrarConteudo(pagina) {
 
       conteudo.innerHTML = htmlPacientes;
       break;
+    case "unidades":
+      const unidades = JSON.parse(localStorage.getItem("unidades")) || [];
+
+      let htmlUnidades = `
+          <h1>Cadastro de Unidades Hospitalares</h1>
+          <form id="formUnidade" class="formulario">
+            <label for="nomeUnidade">Nome da Unidade:</label>
+            <input type="text" id="nomeUnidade" required>
+      
+            <label for="enderecoUnidade">Endereço:</label>
+            <input type="text" id="enderecoUnidade" required>
+      
+            <button type="submit">Salvar Unidade</button>
+          </form>
+          <hr>
+          <h2>Lista de Unidades</h2>
+          <table class="tabela-consultas">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Endereço</th>
+                <th>Leitos</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaUnidades">`;
+
+      unidades.forEach((u, i) => {
+        htmlUnidades += `
+            <tr>
+              <td><input type="text" value="${
+                u.nome
+              }" onchange="editarUnidade(${i}, 'nome', this.value)"></td>
+              <td><input type="text" value="${
+                u.endereco
+              }" onchange="editarUnidade(${i}, 'endereco', this.value)"></td>
+              <td>${u.leitos?.length || 0}</td>
+              <td>
+                <button onclick="excluirUnidade(${i})">Excluir</button>
+                <button onclick="gerenciarLeitosUnidade(${i})" style="margin-left:8px;">🔧 Gerenciar Leitos</button>
+              </td>
+            </tr>`;
+      });
+
+      htmlUnidades += `</tbody></table>`;
+      conteudo.innerHTML = htmlUnidades;
+
+      document
+        .getElementById("formUnidade")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const nome = document.getElementById("nomeUnidade").value.trim();
+          const endereco = document
+            .getElementById("enderecoUnidade")
+            .value.trim();
+
+          if (nome && endereco) {
+            unidades.push({ nome, endereco, leitos: [] });
+            localStorage.setItem("unidades", JSON.stringify(unidades));
+            mostrarToast("Unidade cadastrada com sucesso!", "sucesso");
+            mostrarConteudo("unidades");
+          } else {
+            mostrarToast("Preencha todos os campos!", "erro");
+          }
+        });
+      break;
 
     case "prontuario":
       const pacientesComProntuario =
@@ -388,38 +683,49 @@ function excluirPaciente(index) {
 function abrirProntuario(index) {
   const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
   const p = pacientes[index];
+
   const prontuarioAtual = p.prontuario || "";
+  const prescricaoAtual = p.prescricao || "";
 
   const conteudo = document.getElementById("conteudo");
   conteudo.innerHTML = `
-  <h1>Prontuário de ${p.nome}</h1>
-  <p><strong>CPF:</strong> ${p.cpf}</p>
-  <p><strong>Nascimento:</strong> ${p.data}</p>
+    <h1>Prontuário de ${p.nome}</h1>
+    <p><strong>CPF:</strong> ${p.cpf}</p>
+    <p><strong>Nascimento:</strong> ${p.data}</p>
 
-  <label for="prontuarioTexto">Anotações Clínicas:</label><br>
-  <textarea id="prontuarioTexto" rows="10" style="width:100%; border:1px solid #ccc; padding:10px; border-radius:6px;">${prontuarioAtual}</textarea><br><br>
+    <label for="prontuarioTexto">Anotações Clínicas:</label><br>
+    <textarea id="prontuarioTexto" rows="8" style="width:100%; border:1px solid #ccc; padding:10px; border-radius:6px;">${prontuarioAtual}</textarea><br><br>
 
-  <button onclick="salvarProntuario(${index})">💾 Salvar Prontuário</button>
-  <button onclick="exportarProntuarioPDF(${index})" style="margin-left:10px;">🧾 Exportar PDF</button>
-  <button onclick="mostrarConteudo('prontuario')" style="margin-left:10px;">⬅️ Voltar</button>
-`;
+    <label for="prescricaoTexto">Prescrição Médica:</label><br>
+    <textarea id="prescricaoTexto" rows="6" style="width:100%; border:1px solid #ccc; padding:10px; border-radius:6px;">${prescricaoAtual}</textarea><br><br>
+
+    <button onclick="salvarProntuario(${index})" class="botao-padrao">💾 Salvar Prontuário</button>
+    <button onclick="exportarProntuarioPDF(${index})" class="botao-padrao" style="margin-left:10px;">🧾 Exportar PDF</button>
+    <button onclick="mostrarConteudo('prontuario')" class="botao-padrao" style="margin-left:10px;">⬅️ Voltar</button>
+  `;
 }
+
 function salvarProntuario(index) {
   const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
   const texto = document.getElementById("prontuarioTexto").value.trim();
+  const receita = document.getElementById("prescricaoTexto").value.trim();
 
   pacientes[index].prontuario = texto;
+  pacientes[index].prescricao = receita;
+
   localStorage.setItem("pacientes", JSON.stringify(pacientes));
 
-  mostrarToast("Prontuário salvo com sucesso!", "sucesso");
+  mostrarToast("Prontuário e prescrição salvos com sucesso!", "sucesso");
 }
+
 function exportarProntuarioPDF(index) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
   const p = pacientes[index];
-  const texto = document.getElementById("prontuarioTexto").value.trim();
+  const texto = p.prontuario || "Sem anotações.";
+  const receita = p.prescricao || "Sem prescrição.";
 
   doc.setFontSize(14);
   doc.text(`Prontuário Médico - SGHSS`, 10, 10);
@@ -430,13 +736,20 @@ function exportarProntuarioPDF(index) {
 
   doc.setFontSize(12);
   doc.text("Anotações Clínicas:", 10, 48);
+  let y = 58;
+  const linhas1 = doc.splitTextToSize(texto, 180);
+  doc.text(linhas1, 10, y);
+  y += linhas1.length * 8 + 10;
 
-  const linhas = doc.splitTextToSize(texto || "Sem observações.", 180);
-  doc.text(linhas, 10, 58);
+  doc.text("Prescrição Médica:", 10, y);
+  y += 10;
+  const linhas2 = doc.splitTextToSize(receita, 180);
+  doc.text(linhas2, 10, y);
 
   const nomeArquivo = `prontuario_${p.nome.replace(/ /g, "_")}.pdf`;
   doc.save(nomeArquivo);
 }
+
 function exportarBackupJSON() {
   const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
   const consultas = JSON.parse(localStorage.getItem("consultas")) || [];
@@ -468,3 +781,113 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebar.classList.toggle("ativa");
   });
 });
+function editarProfissional(index, campo, novoValor) {
+  const profissionais = JSON.parse(localStorage.getItem("profissionais")) || [];
+  profissionais[index][campo] = novoValor;
+  localStorage.setItem("profissionais", JSON.stringify(profissionais));
+  mostrarToast("Profissional atualizado!", "sucesso");
+}
+
+function excluirProfissional(index) {
+  if (confirm("Deseja realmente excluir este profissional?")) {
+    const profissionais =
+      JSON.parse(localStorage.getItem("profissionais")) || [];
+    profissionais.splice(index, 1);
+    localStorage.setItem("profissionais", JSON.stringify(profissionais));
+    mostrarToast("Profissional excluído!", "sucesso");
+    mostrarConteudo("profissionais");
+  }
+}
+function alternarLeito(index) {
+  const leitos = JSON.parse(localStorage.getItem("leitos")) || [];
+
+  leitos[index].status =
+    leitos[index].status === "disponível" ? "ocupado" : "disponível";
+  localStorage.setItem("leitos", JSON.stringify(leitos));
+
+  mostrarToast(`Status do ${leitos[index].id} atualizado!`, "sucesso");
+  mostrarConteudo("leitos");
+}
+function editarUnidade(index, campo, novoValor) {
+  const unidades = JSON.parse(localStorage.getItem("unidades")) || [];
+  unidades[index][campo] = novoValor;
+  localStorage.setItem("unidades", JSON.stringify(unidades));
+  mostrarToast("Unidade atualizada!", "sucesso");
+}
+
+function excluirUnidade(index) {
+  if (confirm("Deseja excluir esta unidade?")) {
+    const unidades = JSON.parse(localStorage.getItem("unidades")) || [];
+    unidades.splice(index, 1);
+    localStorage.setItem("unidades", JSON.stringify(unidades));
+    mostrarToast("Unidade excluída!", "sucesso");
+    mostrarConteudo("unidades");
+  }
+}
+function gerenciarLeitosUnidade(index) {
+  const unidades = JSON.parse(localStorage.getItem("unidades")) || [];
+  const unidade = unidades[index];
+
+  let html = `
+    <h1>Leitos - ${unidade.nome}</h1>
+    <p><strong>Endereço:</strong> ${unidade.endereco}</p>
+    <form id="formNovoLeito" class="formulario">
+      <label for="novoLeitoId">ID do novo leito:</label>
+      <input type="text" id="novoLeitoId" required>
+      <button type="submit">Adicionar Leito</button>
+    </form>
+    <hr>
+    <h2>Leitos Cadastrados (${unidade.leitos.length})</h2>
+    <ul style="list-style:none; padding:0;">`;
+
+  unidade.leitos.forEach((leito, i) => {
+    html += `
+      <li style="margin-bottom: 10px; background:#fff; padding:10px; border-radius:6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <strong>${leito.id}</strong> - ${leito.status}
+        <button onclick="alternarStatusLeito(${index}, ${i})" class="botao-padrao" style="margin-left:10px;">
+          ${leito.status === "disponível" ? "Ocupar" : "Liberar"}
+        </button>
+      </li>`;
+  });
+
+  html += `</ul><button onclick="mostrarConteudo('unidades')" class="botao-padrao">⬅️ Voltar</button>`;
+
+  document.getElementById("conteudo").innerHTML = html;
+
+  document
+    .getElementById("formNovoLeito")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const novoId = document.getElementById("novoLeitoId").value.trim();
+
+      if (!novoId) {
+        mostrarToast("Informe o ID do leito.", "erro");
+        return;
+      }
+
+      unidade.leitos.push({ id: novoId, status: "disponível" });
+      localStorage.setItem("unidades", JSON.stringify(unidades));
+      mostrarToast("Leito adicionado com sucesso!", "sucesso");
+      gerenciarLeitosUnidade(index); // recarrega
+    });
+}
+function alternarStatusLeito(indexUnidade, indexLeito) {
+  const unidades = JSON.parse(localStorage.getItem("unidades")) || [];
+  const leito = unidades[indexUnidade].leitos[indexLeito];
+
+  leito.status = leito.status === "disponível" ? "ocupado" : "disponível";
+  localStorage.setItem("unidades", JSON.stringify(unidades));
+
+  mostrarToast("Status do leito atualizado!", "sucesso");
+  gerenciarLeitosUnidade(indexUnidade);
+}
+function atualizarSuprimento(index, tipo) {
+  const suprimentos = JSON.parse(localStorage.getItem("suprimentos")) || [];
+  if (tipo === "entrada") {
+    suprimentos[index].qtd++;
+  } else if (tipo === "saida" && suprimentos[index].qtd > 0) {
+    suprimentos[index].qtd--;
+  }
+  localStorage.setItem("suprimentos", JSON.stringify(suprimentos));
+  mostrarConteudo("administracao");
+}
