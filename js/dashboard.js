@@ -29,6 +29,34 @@ function mostrarConteudo(pagina) {
     case "home":
       conteudo.innerHTML = `<h1>Bem-vindo ao SGHSS</h1><p>Selecione uma opção no menu para começar.</p>`;
       break;
+    case "auditoria":
+      const logs = JSON.parse(localStorage.getItem("logs")) || [];
+
+      let htmlLogs = `<h1>📋 Auditoria do Sistema</h1>`;
+
+      if (logs.length === 0) {
+        htmlLogs += `<p>Nenhuma ação registrada até o momento.</p>`;
+      } else {
+        htmlLogs += `<table class="tabela-consultas">
+      <thead><tr><th>Usuário</th><th>Ação</th><th>Detalhes</th><th>Data/Hora</th></tr></thead>
+      <tbody>`;
+
+        logs.forEach((log) => {
+          htmlLogs += `
+        <tr>
+          <td>${log.usuario}</td>
+          <td>${log.acao}</td>
+          <td>${log.detalhe}</td>
+          <td>${log.data}</td>
+        </tr>`;
+        });
+
+        htmlLogs += `</tbody></table>`;
+      }
+
+      conteudo.innerHTML = htmlLogs;
+      break;
+
     case "teleconsulta":
       conteudo.innerHTML = `
     <h1>Teleconsulta</h1>
@@ -49,73 +77,73 @@ function mostrarConteudo(pagina) {
       }, 0);
 
       let htmlAdmin = `
-    <h1>💼 Administração Hospitalar</h1>
-
-    <h2>📊 Relatórios Financeiros</h2>
-    <form id="formFinanceiro" class="formulario">
-      <label for="tipoFinanceiro">Tipo:</label>
-      <select id="tipoFinanceiro" required>
-        <option value="Receita">Receita</option>
-        <option value="Despesa">Despesa</option>
-      </select>
-
-      <label for="descFinanceiro">Descrição:</label>
-      <input type="text" id="descFinanceiro" required>
-
-      <label for="valorFinanceiro">Valor (R$):</label>
-      <input type="number" id="valorFinanceiro" step="0.01" required>
-
-      <label for="dataFinanceiro">Data:</label>
-      <input type="date" id="dataFinanceiro" required>
-
-      <button type="submit">Lançar</button>
-    </form>
-
-    <table class="tabela-consultas" style="margin-top:20px;">
-      <thead><tr><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Data</th></tr></thead>
-      <tbody>
-  `;
+          <h1>💼 Administração Hospitalar</h1>
+      
+          <h2>📊 Relatórios Financeiros</h2>
+          <form id="formFinanceiro" class="formulario">
+            <label for="tipoFinanceiro">Tipo:</label>
+            <select id="tipoFinanceiro" required>
+              <option value="Receita">Receita</option>
+              <option value="Despesa">Despesa</option>
+            </select>
+      
+            <label for="descFinanceiro">Descrição:</label>
+            <input type="text" id="descFinanceiro" required>
+      
+            <label for="valorFinanceiro">Valor (R$):</label>
+            <input type="number" id="valorFinanceiro" step="0.01" required>
+      
+            <label for="dataFinanceiro">Data:</label>
+            <input type="date" id="dataFinanceiro" required>
+      
+            <button type="submit">Lançar</button>
+          </form>
+      
+          <table class="tabela-consultas" style="margin-top:20px;">
+            <thead><tr><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Data</th></tr></thead>
+            <tbody>
+        `;
 
       lancamentos.forEach((l) => {
         htmlAdmin += `
-      <tr>
-        <td>${l.tipo}</td>
-        <td>${l.descricao}</td>
-        <td>R$ ${l.valor.toFixed(2)}</td>
-        <td>${l.data}</td>
-      </tr>`;
+            <tr>
+              <td>${l.tipo}</td>
+              <td>${l.descricao}</td>
+              <td>R$ ${l.valor.toFixed(2)}</td>
+              <td>${l.data}</td>
+            </tr>`;
       });
 
       htmlAdmin += `</tbody></table>
-    <p><strong>Saldo:</strong> R$ ${saldo.toFixed(2)}</p>
-    <hr>
-
-    <h2>🧰 Suprimentos Hospitalares</h2>
-    <form id="formSuprimento" class="formulario">
-      <label for="nomeSuprimento">Nome do Item:</label>
-      <input type="text" id="nomeSuprimento" required>
-
-      <label for="qtdSuprimento">Quantidade Inicial:</label>
-      <input type="number" id="qtdSuprimento" required>
-
-      <button type="submit">Adicionar Item</button>
-    </form>
-
-    <table class="tabela-consultas" style="margin-top:20px;">
-      <thead><tr><th>Item</th><th>Quantidade</th><th>Ações</th></tr></thead>
-      <tbody>
-  `;
+          <p><strong>Saldo:</strong> R$ ${saldo.toFixed(2)}</p>
+          <hr>
+      
+          <h2>🧰 Suprimentos Hospitalares</h2>
+          <form id="formSuprimento" class="formulario">
+            <label for="nomeSuprimento">Nome do Item:</label>
+            <input type="text" id="nomeSuprimento" required>
+      
+            <label for="qtdSuprimento">Quantidade Inicial:</label>
+            <input type="number" id="qtdSuprimento" required>
+      
+            <button type="submit">Adicionar Item</button>
+          </form>
+      
+          <table class="tabela-consultas" style="margin-top:20px;">
+            <thead><tr><th>Item</th><th>Quantidade</th><th>Ações</th></tr></thead>
+            <tbody>
+        `;
 
       suprimentos.forEach((s, i) => {
         htmlAdmin += `
-      <tr>
-        <td>${s.nome}</td>
-        <td>${s.qtd}</td>
-        <td>
-          <button onclick="atualizarSuprimento(${i}, 'entrada')">+</button>
-          <button onclick="atualizarSuprimento(${i}, 'saida')">-</button>
-        </td>
-      </tr>`;
+            <tr>
+              <td>${s.nome}</td>
+              <td>${s.qtd}</td>
+              <td>
+                <button onclick="atualizarSuprimento(${i}, 'entrada')">+</button>
+                <button onclick="atualizarSuprimento(${i}, 'saida')">-</button>
+              </td>
+            </tr>`;
       });
 
       htmlAdmin += `</tbody></table>`;
@@ -139,6 +167,10 @@ function mostrarConteudo(pagina) {
           if (descricao && valor && data) {
             lancamentos.push({ tipo, descricao, valor, data });
             localStorage.setItem("financeiro", JSON.stringify(lancamentos));
+            registrarLog(
+              "Lançamento financeiro",
+              `${tipo} de R$ ${valor.toFixed(2)} - ${descricao}`
+            );
             mostrarToast("Lançamento registrado!", "sucesso");
             mostrarConteudo("administracao");
           } else {
@@ -157,6 +189,10 @@ function mostrarConteudo(pagina) {
           if (nome && qtd >= 0) {
             suprimentos.push({ nome, qtd });
             localStorage.setItem("suprimentos", JSON.stringify(suprimentos));
+            registrarLog(
+              "Cadastro de suprimento",
+              `Item: ${nome}, Quantidade: ${qtd}`
+            );
             mostrarToast("Item adicionado!", "sucesso");
             mostrarConteudo("administracao");
           } else {
@@ -320,6 +356,8 @@ function mostrarConteudo(pagina) {
           pacientes.push({ nome, cpf, data, internado, dataInternacao });
           localStorage.setItem("pacientes", JSON.stringify(pacientes));
 
+          registrarLog("Cadastro de paciente", `Nome: ${nome}`);
+
           mensagem.textContent = "Paciente cadastrado com sucesso!";
           mensagem.style.color = "green";
           document.getElementById("formCadastro").reset();
@@ -422,6 +460,7 @@ function mostrarConteudo(pagina) {
 
       conteudo.innerHTML = htmlConsultas;
       break;
+
     case "pacientes":
       const pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
 
@@ -690,12 +729,20 @@ function editarConsulta(index, campo, novoValor) {
 }
 
 function excluirConsulta(index) {
-  if (confirm("Deseja realmente excluir esta consulta?")) {
-    const consultas = JSON.parse(localStorage.getItem("consultas")) || [];
+  const consultas = JSON.parse(localStorage.getItem("consultas")) || [];
+
+  if (confirm("Deseja realmente cancelar esta consulta?")) {
+    const consultaCancelada = consultas[index]; // salvar antes de remover
+
     consultas.splice(index, 1);
     localStorage.setItem("consultas", JSON.stringify(consultas));
-    mostrarToast("Consulta excluída!", "sucesso");
-    mostrarConteudo("consultas"); // atualiza a tela
+
+    mostrarToast("Consulta cancelada!", "sucesso");
+    registrarLog(
+      "Cancelamento de consulta",
+      `Paciente: ${consultaCancelada.paciente}`
+    );
+    mostrarConteudo("consultas");
   }
 }
 
@@ -918,14 +965,26 @@ function alternarStatusLeito(indexUnidade, indexLeito) {
 }
 function atualizarSuprimento(index, tipo) {
   const suprimentos = JSON.parse(localStorage.getItem("suprimentos")) || [];
+  const item = suprimentos[index];
+
   if (tipo === "entrada") {
-    suprimentos[index].qtd++;
-  } else if (tipo === "saida" && suprimentos[index].qtd > 0) {
-    suprimentos[index].qtd--;
+    item.qtd++;
+    registrarLog(
+      "Entrada de suprimento",
+      `Item: ${item.nome} (agora ${item.qtd})`
+    );
+  } else if (tipo === "saida" && item.qtd > 0) {
+    item.qtd--;
+    registrarLog(
+      "Saída de suprimento",
+      `Item: ${item.nome} (agora ${item.qtd})`
+    );
   }
+
   localStorage.setItem("suprimentos", JSON.stringify(suprimentos));
   mostrarConteudo("administracao");
 }
+
 function registrarLog(acao, detalhe = "") {
   const logs = JSON.parse(localStorage.getItem("logs")) || [];
 
